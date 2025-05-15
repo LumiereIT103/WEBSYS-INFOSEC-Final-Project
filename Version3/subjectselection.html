@@ -69,7 +69,6 @@
       </div>
 
       <nav class="text-xs font-semibold space-y-2">
-        <!-- Subjects and Topics -->
         <script>
           const subjects = {
             Science: ["Atmosphere", "Geosphere", "Hydrosphere", "Biosphere", "Photosynthesis", "Gravity", "Electricity", "Light", "Sound", "Cells"],
@@ -80,7 +79,6 @@
             TLE: ["Cooking", "Baking", "Tailoring", "Carpentry", "Electrical Works", "Agriculture", "Aquaculture", "Computer Hardware", "Housekeeping", "Entrepreneurship"]
           };
         </script>
-
         <div id="dynamicSubjects"></div>
       </nav>
     </aside>
@@ -94,20 +92,29 @@
         <a href="userprof.html" class="block text-black p-2 hover:bg-gray-100">My Profile</a>
         <a href="login.html" class="block text-black p-2 hover:bg-gray-100">Log Out</a>
       </div>
-      <br>
-      <br>
-      <br>
+
+      <br><br><br>
+
       <div id="defaultCard" class="bg-white text-black p-6 rounded shadow text-center text-xl font-bold">
         Learn Something Cool Today
       </div>
 
       <div id="jokeCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
+        <!-- Joke Cards -->
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">Why don't scientists trust atoms?</p></div><div class="flip-card-back"><p>Because they make up everything!</p></div></div></div>
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">What did the math book say to the student?</p></div><div class="flip-card-back"><p>I've got problems!</p></div></div></div>
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">Why was the history teacher always calm?</p></div><div class="flip-card-back"><p>Because they knew how to stay in the past!</p></div></div></div>
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">Why can’t you trust an atom?</p></div><div class="flip-card-back"><p>Because they literally make up everything!</p></div></div></div>
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">Why did the student eat his homework?</p></div><div class="flip-card-back"><p>Because the teacher said it was a piece of cake!</p></div></div></div>
         <div class="flip-card"><div class="flip-card-inner"><div class="flip-card-front"><p class="text-xl">What do you call an angle that's gone bad?</p></div><div class="flip-card-back"><p>A "rebel" angle!</p></div></div></div>
+      </div>
+
+      <div class="mb-4 mt-10">
+        <label for="sourceSelect" class="mr-2">Choose a source:</label>
+        <select id="sourceSelect" class="text-black p-1 rounded">
+          <option value="britannica">Britannica</option>
+          <option value="wikipedia">Wikipedia</option>
+        </select>
       </div>
 
       <div id="topicContent" class="hidden bg-white text-black p-6 rounded shadow mt-10">
@@ -118,12 +125,21 @@
     </main>
 
     <script>
-    const topicsData = {};
-    for (const [subject, topics] of Object.entries(subjects)) {
-      topics.forEach(topic => {
-        let link = `https://www.britannica.com/search?query=${encodeURIComponent(topic)}`;
-        topicsData[topic] = `${topic} is a topic under ${subject}. Learn more about it here: <a href="${link}" target="_blank" class="text-blue-500 underline">Search on Britannica</a>`;
-      });
+      const topicsData = {};
+      let currentTopic = null;
+
+      for (const [subject, topics] of Object.entries(subjects)) {
+        topics.forEach(topic => {
+          topicsData[topic] = {
+            subject,
+            generateLink: function(source) {
+              let url = source === 'wikipedia'
+                ? `https://en.wikipedia.org/wiki/${encodeURIComponent(topic)}`
+                : `https://www.britannica.com/search?query=${encodeURIComponent(topic)}`;
+              return `${topic} is a topic under ${subject}. Learn more here: <a href="${url}" target="_blank" class="text-blue-500 underline">${source.charAt(0).toUpperCase() + source.slice(1)}</a>`;
+            }
+          };
+        });
 
         const container = document.createElement("div");
         container.innerHTML = `
@@ -144,8 +160,13 @@
       }
 
       function showTopic(topic) {
+        const source = document.getElementById('sourceSelect').value;
+        const topicData = topicsData[topic];
+        currentTopic = topic;
+
         document.getElementById('topicTitle').textContent = topic;
-        document.getElementById('topicDescription').innerHTML = topicsData[topic] || 'Topic not found.';
+        document.getElementById('topicDescription').innerHTML = topicData.generateLink(source);
+
         document.getElementById('defaultCard').classList.add('hidden');
         document.getElementById('jokeCards').classList.add('hidden');
         document.getElementById('topicContent').classList.remove('hidden');
@@ -157,7 +178,14 @@
         document.getElementById('topicContent').classList.add('hidden');
         document.getElementById('topicTitle').textContent = '';
         document.getElementById('topicDescription').textContent = '';
+        currentTopic = null;
       }
+
+      document.getElementById('sourceSelect').addEventListener('change', () => {
+        if (currentTopic) {
+          showTopic(currentTopic);
+        }
+      });
 
       document.getElementById('homeButton').addEventListener('click', goBack);
       document.getElementById('profileBtn').addEventListener('click', () => {
